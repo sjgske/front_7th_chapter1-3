@@ -177,3 +177,43 @@ export const setupMockHandlerRecurringListUpdate = (initEvents = [] as Event[]) 
     })
   );
 };
+
+export const setupMockHandlerWithRequestCapture = (
+  initEvents: Event[],
+  onRequestCapture: (request: { method: string; url: string; body: any }) => void
+) => {
+  const mockEvents: Event[] = [...initEvents];
+
+  server.use(
+    http.get('/api/events', () => {
+      return HttpResponse.json({ events: mockEvents });
+    }),
+    http.put('/api/events/:id', async ({ params, request }) => {
+      const { id } = params;
+      const updatedEvent = (await request.json()) as Event;
+      const index = mockEvents.findIndex((event) => event.id === id);
+
+      onRequestCapture({
+        method: 'PUT',
+        url: `/api/events/${id}`,
+        body: updatedEvent,
+      });
+
+      mockEvents[index] = { ...mockEvents[index], ...updatedEvent };
+      return HttpResponse.json(mockEvents[index]);
+    }),
+    http.post('/api/events', async ({ request }) => {
+      const newEvent = (await request.json()) as Event;
+      newEvent.id = String(mockEvents.length + 1);
+
+      onRequestCapture({
+        method: 'POST',
+        url: '/api/events',
+        body: newEvent,
+      });
+
+      mockEvents.push(newEvent);
+      return HttpResponse.json(newEvent, { status: 201 });
+    })
+  );
+};
