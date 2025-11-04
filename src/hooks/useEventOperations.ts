@@ -19,6 +19,18 @@ const SUCCESS_MESSAGES = {
   EVENTS_LOADED: '일정 로딩 완료!',
 } as const;
 
+// 헬퍼 함수: repeat 기본값 설정
+const prepareEventForSave = (eventData: Event | EventForm): Event | EventForm => {
+  return {
+    ...eventData,
+    repeat: eventData.repeat ?? {
+      type: 'none',
+      interval: 0,
+      endDate: '',
+    },
+  };
+};
+
 export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const [events, setEvents] = useState<Event[]>([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -40,21 +52,14 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
   const saveEvent = async (eventData: Event | EventForm) => {
     try {
       let response;
+
       if (editing) {
-        const editingEvent = {
-          ...eventData,
-          // ! TEST CASE
-          repeat: eventData.repeat ?? {
-            type: 'none',
-            interval: 0,
-            endDate: '',
-          },
-        };
+        const preparedEvent = prepareEventForSave(eventData);
 
         response = await fetch(`/api/events/${(eventData as Event).id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(editingEvent),
+          body: JSON.stringify(preparedEvent),
         });
       } else {
         response = await fetch('/api/events', {
@@ -76,6 +81,27 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     } catch (error) {
       console.error('Error saving event:', error);
       enqueueSnackbar(ERROR_MESSAGES.SAVE_FAILED, { variant: 'error' });
+    }
+  };
+
+  const updateEvent = async (eventData: Event) => {
+    try {
+      const preparedEvent = prepareEventForSave(eventData);
+
+      const response = await fetch(`/api/events/${eventData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(preparedEvent),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update event');
+      }
+
+      await fetchEvents();
+    } catch (error) {
+      console.error('Error updating event:', error);
+      throw error;
     }
   };
 
@@ -127,5 +153,5 @@ export const useEventOperations = (editing: boolean, onSave?: () => void) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return { events, fetchEvents, saveEvent, deleteEvent, createRepeatEvent };
+  return { events, fetchEvents, saveEvent, updateEvent, deleteEvent, createRepeatEvent };
 };

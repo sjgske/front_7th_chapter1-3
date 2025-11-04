@@ -71,6 +71,23 @@ export const useEventForm = (initialEvent?: Event) => {
     setNotificationTime(event.notificationTime);
   };
 
+  const fillFormWithDate = (dateString: string) => {
+    setEditingEvent(null);
+    setDate(dateString);
+    setStartTime('09:00');
+    setEndTime('10:00');
+    setTitle('');
+    setDescription('');
+    setLocation('');
+    setCategory('업무');
+    setNotificationTime(10);
+    setIsRepeating(false);
+    setRepeatType('none');
+    setRepeatInterval(1);
+    setRepeatEndDate('');
+    setTimeError({ startTimeError: null, endTimeError: null });
+  };
+
   return {
     title,
     setTitle,
@@ -104,5 +121,6 @@ export const useEventForm = (initialEvent?: Event) => {
     handleEndTimeChange,
     resetForm,
     editEvent,
+    fillFormWithDate,
   };
 };
