@@ -520,7 +520,8 @@ describe('드래그 앤 드롭 기능', () => {
     setup(<App />);
 
     // Wait for event to load
-    await screen.findByText('드래그 테스트 회의');
+    const eventList = within(screen.getByTestId('event-list'));
+    await eventList.findByText('드래그 테스트 회의');
 
     // Act: useDragAndDrop 훅을 사용하여 드래그 이벤트 시뮬레이션
     // 실제 dnd-kit 드래그 시뮬레이션은 복잡하므로, 훅의 handleDragEnd를 직접 테스트
@@ -561,12 +562,14 @@ describe('드래그 앤 드롭 기능', () => {
 
     setup(<App />);
 
-    await screen.findByText('반복 회의');
+    const eventList = within(screen.getByTestId('event-list'));
+    const events = await eventList.findAllByText('반복 회의');
 
     // Act: 반복 일정 드래그 시뮬레이션
     // 실제 구현에서는 드래그 핸들러가 대화상자를 열어야 함
 
-    // Assert: 현재는 대화상자가 표시되지 않음 (구현 전)
+    // Assert: 반복 일정이 로드되었는지 확인
+    expect(events.length).toBeGreaterThan(0);
     // 구현 후에는 다음과 같이 검증:
     // expect(screen.getByText('반복 일정 수정')).toBeInTheDocument();
   });
@@ -590,9 +593,11 @@ describe('드래그 앤 드롭 기능', () => {
 
     setup(<App />);
 
-    await screen.findByText('반복 회의');
+    const eventList = within(screen.getByTestId('event-list'));
+    const events = await eventList.findAllByText('반복 회의');
 
-    // Act & Assert: 드래그 후 취소 시 원래 날짜 유지
+    // Act & Assert: 반복 일정이 로드되었는지 확인
+    expect(events.length).toBeGreaterThan(0);
     // 구현 후 테스트:
     // 1. 드래그 이벤트 발생
     // 2. 대화상자에서 "취소" 클릭
